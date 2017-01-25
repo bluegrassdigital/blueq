@@ -1,0 +1,30 @@
+{
+  "name": "blueq",
+  "version": "1.0.0",
+  "description": "A collection of Sass mixins and functions for generating media queries and managing breakpoints",
+  "main": "main.scss",
+  "style": "main.scss",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "docs": "sassdoc ./main.scss -d ./docs -t default"
+  },
+  "author": {
+    "name": "Simon Buerger",
+    "url": "https://twitter.com/simonbuerger"
+  },
+  "license": "MIT",
+  "issues": "http://github.com/bluegrassdigital/blueq/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bluegrassdigital/blueq.git"
+  },
+  "keywords": [
+    "sass",
+    "grid",
+    "responsive",
+    "css"
+  ],
+  "devDependencies": {
+    "sassdoc": "^2.1.20"
+  }
+}

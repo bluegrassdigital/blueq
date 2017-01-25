@@ -1,0 +1,133 @@
+///
+/// Default breakpoints. Map of key value pairs representing `[breakpoint-name]:[breakpoint-value]`.
+/// ---
+/// @type Map
+/// ---
+/// @group API
+///
+$blueq-breakpoints: (
+  xxs: 240px,
+  xs: 320px,
+  s: 480px,
+  m: 600px,
+  l: 768px,
+  xl: 1024px,
+  xxl: 1200px,
+  xxxl: 1600px
+) !default;
+
+///
+/// Whether to adjust the max width media queries down by 1 pixel
+/// ---
+/// @type Boolean
+/// ---
+/// @group API
+///
+$blueq-adjust: true !default;
+
+@function _blueq-adjustForMax($value) {
+  $adjust: 0;
+  @if type-of($value) == 'number' and $blueq-adjust {
+    @if unit($value) == 'em' {
+      $adjust: (1/16) * 1em;
+    }
+    @if unit($value) == 'rem' {
+      $adjust: (1/16) * 1rem;
+    }
+    @if unit($value) == 'px' {
+      $adjust: 1px;
+    }
+  }
+  @return $value - $adjust;
+}
+
+/// Fetch a breakpoint value from the `$blueq-breakpoints` map
+/// @param {String|Number} $size The breakpoint alias from the `$blueq-breakpoints`
+/// @group API
+@function blueq-bp ($size, $adjust: false) {
+  $length: map-get($blueq-breakpoints, $size);
+  @if $adjust {
+    $length: _blueq-adjustForMax($length);
+  }
+  @return $length;
+}
+
+@mixin blueq($args...){
+  $declaration: '';
+  @each $arg in $args {
+    $length: '';
+    $type: '';
+    @if type-of($arg) == 'string' and map-get($blueq-breakpoints, $arg) {
+      $length: map-get($blueq-breakpoints, $arg);
+      $type: 'min-width';
+    } @else if type-of($arg) == 'number' {
+      $length: $arg;
+      $type: 'min-width';
+    } @else if type-of($arg) == 'map' {
+      $mapDeclaration: '';
+      @each $key, $value in $arg {
+        @if type-of($value) == string and map-get($blueq-breakpoints, $value) {
+          $value: map-get($blueq-breakpoints, $value);
+          @if $key == 'max-width' {
+            $value: _blueq-adjustForMax($value);
+          }
+        }
+        @if $mapDeclaration == '' {
+          $mapDeclaration: '(#{$key}:#{$value})';
+        } @else {
+          $mapDeclaration: $mapDeclaration + ' and (#{$key}:#{$value})';
+        }
+      }
+      @if $declaration == '' {
+        $declaration: $mapDeclaration;
+      } @else {
+        $declaration: $declaration + ' , ' + $mapDeclaration;
+      }
+    }
+    @if $length != '' and $type != '' {
+      @if $declaration == '' {
+        $declaration: '(#{$type}:#{$length})';
+      } @else {
+        $declaration: $declaration + ' , (#{$type}:#{$length})';
+      }
+    }
+  }
+  @if $declaration != '' {
+    @media #{$declaration} {
+      @content;
+    }
+  }
+}
+
+/// Generates a min-width media query
+/// @param {String|Number} $size The breakpoint alias from the `$blueq-breakpoints` map or an actual unit size.
+/// @group API
+@mixin blueq-min($size) {
+  @include blueq($size) {
+    @content;
+  }
+}
+
+/// Generates a max-width media query. If the size is one of the `$blueq-breakpoints` values then it will be adjusted to that width minus the equivalent of 1 pixel to prevent overlap with min width media queries. To switch off this behaviour globally set `$blueq-adjust: false;`. To switch off this behaviour for a specific instance pass false as the second mixin paramater
+/// @param {String|Number} $size The breakpoint alias from the `$blueq-breakpoints` map or an actual unit size.
+/// @group API
+@mixin blueq-max($size, $adjust: $blueq-adjust) {
+  $old-adjust: $blueq-adjust;
+  $blueq-adjust: $adjust !global;
+  @include blueq((max-width:$size)) {
+    @content;
+  }
+  $blueq-adjust: $old-adjust !global;
+}
+
+/// Generates a min-width and max-width media query range
+/// @param {String|Number} $size The breakpoint alias from the `$blueq-breakpoints` map or an actual unit size.
+/// @group API
+@mixin blueq-minmax($min, $max, $adjust: $blueq-adjust) {
+  $old-adjust: $blueq-adjust;
+  $blueq-adjust: $adjust !global;
+  @include blueq((min-width:$min, max-width:$max)) {
+    @content;
+  }
+  $blueq-adjust: $old-adjust !global;
+}
